@@ -164,10 +164,15 @@ endif
 " Hook common text manipulation commands to update PyFlakes
 "   TODO: is there a more general "text op" autocommand we could register
 "   for here?
-noremap <buffer><silent> dd dd:PyflakesUpdate<CR>
-noremap <buffer><silent> dw dw:PyflakesUpdate<CR>
-noremap <buffer><silent> u u:PyflakesUpdate<CR>
-noremap <buffer><silent> <C-R> <C-R>:PyflakesUpdate<CR>
+xnoremap <buffer><silent> x x:PyflakesUpdate<CR>
+xnoremap <buffer><silent> d d:PyflakesUpdate<CR>
+xnoremap <buffer><silent> D D:PyflakesUpdate<CR>
+nnoremap <buffer><silent> D D:PyflakesUpdate<CR>
+nnoremap <buffer><silent> dd dd:PyflakesUpdate<CR>
+nnoremap <buffer><silent> dw dw:PyflakesUpdate<CR>
+nnoremap <buffer><silent> u u:PyflakesUpdate<CR>
+nnoremap <buffer><silent> <C-R> <C-R>:PyflakesUpdate<CR>
+nnoremap <buffer><silent> <CR> <CR>:PyflakesUpdate<CR>
 
 " WideMsg() prints [long] message up to (&columns-1) length
 " guaranteed without "Press Enter" prompt.
