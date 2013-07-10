@@ -172,7 +172,7 @@ nnoremap <buffer><silent> dd dd:PyflakesUpdate<CR>
 nnoremap <buffer><silent> dw dw:PyflakesUpdate<CR>
 nnoremap <buffer><silent> u u:PyflakesUpdate<CR>
 nnoremap <buffer><silent> <C-R> <C-R>:PyflakesUpdate<CR>
-nnoremap <buffer><silent> <CR> <CR>:PyflakesUpdate<CR>
+" nnoremap <buffer><silent> <CR> <CR>:PyflakesUpdate<CR>
 
 " WideMsg() prints [long] message up to (&columns-1) length
 " guaranteed without "Press Enter" prompt.
