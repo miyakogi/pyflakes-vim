@@ -205,6 +205,10 @@ if !exists("*s:GetQuickFixStackCount")
     endfunction
 endif
 
+if !exists(":GetQuickFixStackCount")
+  command GetQuickFixStackCount :call s:GetQuickFixStackCount()
+endif
+
 if !exists("*s:ActivatePyflakesQuickFixWindow")
     function s:ActivatePyflakesQuickFixWindow()
         try
@@ -320,6 +324,10 @@ if !exists("*s:GetPyflakesMessage")
     endfunction
 endif
 
+if !exists(":GetPyflakesMessage")
+  command GetPyflakesMessage :call s:GetPyflakesMessage()
+endif
+
 if !exists('*s:ClearPyflakes')
     function s:ClearPyflakes()
         let s:matches = getmatches()
@@ -332,5 +340,9 @@ if !exists('*s:ClearPyflakes')
         let b:matchedlines = {}
         let b:cleared = 1
     endfunction
+endif
+
+if !exists(":ClearPyflakes")
+  command ClearPyflakes :call s:ClearPyflakes()
 endif
 
