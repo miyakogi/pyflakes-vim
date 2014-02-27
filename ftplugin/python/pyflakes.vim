@@ -17,6 +17,8 @@ else
     let b:did_pyflakes_plugin = 1
 endif
 
+let b:qf_list = getqflist()
+
 if !exists('g:pyflakes_builtins')
     let g:pyflakes_builtins = []
 endif
@@ -29,10 +31,9 @@ if !exists("b:did_python_init")
         finish
     endif
 
-if !exists('g:pyflakes_use_quickfix')
-    let g:pyflakes_use_quickfix = 1
-endif
-
+	if !exists('g:pyflakes_use_quickfix')
+		let g:pyflakes_use_quickfix = 1
+	endif
 
     python << EOF
 import vim
@@ -297,6 +298,18 @@ end
 
 " keep track of whether or not we are showing a message
 let b:showing_message = 0
+
+function! PyflakesGetStatusLine()
+	let g:pyflakes_status = b:qf_list
+	let l:err_count = len(b:qf_list)
+	if l:err_count > 0
+		let l:status_msg = 'SyntaxError(' . l:err_count .  ') line:' . b:qf_list[0].lnum
+		let l:status_msg = '[SyntaxError: line:' . b:qf_list[0].lnum . ' (' . l:err_count .')]'
+		return l:status_msg
+	else
+		return ''
+	endif
+endfunction
 
 if !exists("*s:GetPyflakesMessage")
     function s:GetPyflakesMessage()
