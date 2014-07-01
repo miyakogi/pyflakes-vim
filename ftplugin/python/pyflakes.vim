@@ -17,14 +17,14 @@ else
     let b:did_pyflakes_plugin = 1
 endif
 
-let b:qf_list = getqflist()
+let b:pyflakes_qflist = getqflist()
 
 if !exists('g:pyflakes_builtins')
     let g:pyflakes_builtins = []
 endif
 
-if !exists("b:did_python_init")
-    let b:did_python_init = 0
+if !exists("b:pyflakes_did_python_init")
+    let b:pyflakes_did_python_init = 0
 
     if !has('python')
         " the pyflakes.vim plugin requires Vim to be compiled with +python
@@ -130,25 +130,22 @@ def check(buffer):
 def vim_quote(s):
     return s.replace("'", "''")
 EOF
-    let b:did_python_init = 1
+    let b:pyflakes_did_python_init = 1
 endif
 
-if !b:did_python_init
+if !b:pyflakes_did_python_init
     finish
 endif
 
-au BufLeave <buffer> call s:ClearPyflakes()
-
-au BufEnter <buffer> call s:RunPyflakes()
-au InsertLeave <buffer> call s:RunPyflakes()
-au InsertEnter <buffer> call s:RunPyflakes()
-au BufWritePost <buffer> call s:RunPyflakes()
-
-au CursorHold <buffer> call s:RunPyflakes()
-au CursorHoldI <buffer> call s:RunPyflakes()
-
-au CursorHold <buffer> call s:GetPyflakesMessage()
-au CursorMoved <buffer> call s:GetPyflakesMessage()
+augroup pyflakes
+  autocmd!
+  autocmd BufLeave,BufWinLeave <buffer> call s:ClearPyflakes()
+  autocmd BufEnter,BuFWinEnter <buffer> call s:RunPyflakes()
+  autocmd InsertLeave,InsertEnter,BufWritePost <buffer> call s:RunPyflakes()
+  autocmd CursorHold,CursorHoldI <buffer> call s:RunPyflakes()
+  autocmd CursorHold <buffer> call s:GetPyflakesMessage()
+  " autocmd CursorMoved <buffer> call s:GetPyflakesMessage()
+augroup END
 
 if !exists("*s:PyflakesUpdate")
     function s:PyflakesUpdate()
@@ -232,20 +229,20 @@ if !exists("*s:RunPyflakes")
     function s:RunPyflakes()
         highlight link PyFlakes SpellBad
 
-        if exists("b:cleared")
-            if b:cleared == 0
+        if exists("b:pyflakes_cleared")
+            if b:pyflakes_cleared == 0
                 silent call s:ClearPyflakes()
-                let b:cleared = 1
+                let b:pyflakes_cleared = 1
             endif
         else
-            let b:cleared = 1
+            let b:pyflakes_cleared = 1
         endif
         
-        let b:matched = []
-        let b:matchedlines = {}
+        let b:pyflakes_matched = []
+        let b:pyflakes_matchedlines = {}
 
-        let b:qf_list = []
-        let b:qf_window_count = -1
+        let b:pyflakes_qflist = []
+        let b:pyflakes_qf_window_count = -1
         
         python << EOF
 for w in check(vim.current.buffer):
@@ -257,7 +254,7 @@ for w in check(vim.current.buffer):
     vim.command('let s:matchDict = {}')
     vim.command("let s:matchDict['lineNum'] = " + lineno)
     vim.command("let s:matchDict['message'] = '%s'" % vim_quote(w.message % w.message_args))
-    vim.command("let b:matchedlines[" + lineno + "] = s:matchDict")
+    vim.command("let b:pyflakes_matchedlines[" + lineno + "] = s:matchDict")
     
     vim.command("let l:qf_item = {}")
     vim.command("let l:qf_item.bufnr = bufnr('%')")
@@ -277,34 +274,47 @@ for w in check(vim.current.buffer):
         vim.command("let l:qf_item.vcol = 1")
         vim.command("let l:qf_item.col = %s" % str(w.col + 1))
 
-    vim.command("call add(b:matched, s:matchDict)")
-    vim.command("call add(b:qf_list, l:qf_item)")
+    vim.command("call add(b:pyflakes_matched, s:matchDict)")
+    vim.command("call add(b:pyflakes_qflist, l:qf_item)")
 EOF
         if g:pyflakes_use_quickfix == 1
             if exists("s:pyflakes_qf")
                 " if pyflakes quickfix window is already created, reuse it
                 call s:ActivatePyflakesQuickFixWindow()
-                call setqflist(b:qf_list, 'r')
+                call setqflist(b:pyflakes_qflist, 'r')
             else
                 " one pyflakes quickfix window for all buffer
-                call setqflist(b:qf_list, '')
+                call setqflist(b:pyflakes_qflist, '')
                 let s:pyflakes_qf = s:GetQuickFixStackCount()
             endif
         endif
 
-        let b:cleared = 0
+        let b:pyflakes_cleared = 0
     endfunction
 end
 
 " keep track of whether or not we are showing a message
-let b:showing_message = 0
+let b:pyflakes_showing_message = 0
+
+function! PyflakesGetErrorCount()
+	return len(b:pyflakes_qflist)
+endfunction
+
+function! PyflakesGetErrorPosition()
+  let qflist = b:pyflakes_qflist
+  if len(qflist) > 0
+    return b:pyflakes_qflist[0].lnum
+  else
+    ""
+  endif
+endfunction
 
 function! PyflakesGetStatusLine()
-	let g:pyflakes_status = b:qf_list
-	let l:err_count = len(b:qf_list)
+	let g:pyflakes_status = b:pyflakes_qflist
+  let l:err_count = PyflakesGetErrorCount()
+  let l:err_pos = PyflakesGetErrorPosition()
 	if l:err_count > 0
-		let l:status_msg = 'SyntaxError(' . l:err_count .  ') line:' . b:qf_list[0].lnum
-		let l:status_msg = '[SyntaxError: line:' . b:qf_list[0].lnum . ' (' . l:err_count .')]'
+		let l:status_msg = '[SyntaxError: line:' . b:pyflakes_qflist[0].lnum . ' (' . l:err_count .')]'
 		return l:status_msg
 	else
 		return ''
@@ -316,23 +326,23 @@ if !exists("*s:GetPyflakesMessage")
         let s:cursorPos = getpos(".")
 
         " Bail if RunPyflakes hasn't been called yet.
-        if !exists('b:matchedlines')
+        if !exists('b:pyflakes_matchedlines')
             return
         endif
 
         " if there's a message for the line the cursor is currently on, echo
         " it to the console
-        if has_key(b:matchedlines, s:cursorPos[1])
-            let s:pyflakesMatch = get(b:matchedlines, s:cursorPos[1])
+        if has_key(b:pyflakes_matchedlines, s:cursorPos[1])
+            let s:pyflakesMatch = get(b:pyflakes_matchedlines, s:cursorPos[1])
             call s:WideMsg(s:pyflakesMatch['message'])
-            let b:showing_message = 1
+            let b:pyflakes_showing_message = 1
             return
         endif
 
         " otherwise, if we're showing a message, clear it
-        if b:showing_message == 1
+        if b:pyflakes_showing_message == 1
             echo
-            let b:showing_message = 0
+            let b:pyflakes_showing_message = 0
         endif
     endfunction
 endif
@@ -349,9 +359,9 @@ if !exists('*s:ClearPyflakes')
                 call matchdelete(s:matchId['id'])
             endif
         endfor
-        let b:matched = []
-        let b:matchedlines = {}
-        let b:cleared = 1
+        let b:pyflakes_matched = []
+        let b:pyflakes_matchedlines = {}
+        let b:pyflakes_cleared = 1
     endfunction
 endif
 
