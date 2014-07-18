@@ -144,7 +144,7 @@ augroup pyflakes
   autocmd InsertLeave,InsertEnter,BufWritePost <buffer> call s:RunPyflakes()
   autocmd CursorHold,CursorHoldI <buffer> call s:RunPyflakes()
   autocmd CursorHold <buffer> call s:GetPyflakesMessage()
-  " autocmd CursorMoved <buffer> call s:GetPyflakesMessage()
+  autocmd CursorMoved <buffer> call s:GetPyflakesMessage()
 augroup END
 
 if !exists("*s:PyflakesUpdate")
