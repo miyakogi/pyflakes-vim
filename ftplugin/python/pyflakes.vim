@@ -138,7 +138,6 @@ if !b:pyflakes_did_python_init
 endif
 
 augroup pyflakes
-  autocmd!
   autocmd BufLeave,BufWinLeave <buffer> call s:ClearPyflakes()
   autocmd BufEnter,BuFWinEnter <buffer> call s:RunPyflakes()
   autocmd InsertLeave,InsertEnter,BufWritePost <buffer> call s:RunPyflakes()
